@@ -1,0 +1,12 @@
+flight_dbt:
+  outputs:
+    dev:
+      dbname: analytics_db
+      host: postgres
+      password: airflow
+      port: 5432
+      schema: public
+      threads: 4
+      type: postgres
+      user: airflow
+  target: dev

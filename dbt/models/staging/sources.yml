@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: staging
+    schema: public
+    tables:
+      - name: flight_prices_staging
+        description: "Raw flight prices loaded from MySQL into PostgreSQL staging"
