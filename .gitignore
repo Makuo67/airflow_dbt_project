@@ -8,3 +8,4 @@ logs/
 *.log
 airflow.db
 .env
+config/

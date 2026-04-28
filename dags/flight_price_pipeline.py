@@ -16,7 +16,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="flight_price_pipelinev7",
+    dag_id="flight_price_pipelinev8",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
     catchup=False,
@@ -86,13 +86,22 @@ with DAG(
             --log-level debug
     """
     )
-    # # ----------------------------
-    # # 6. TRANSFER MARTS TO PRODUCTION SCHEMA
-    # # ----------------------------
-    # transfer_marts_task = PythonOperator(
-    #     task_id="transfer_marts_to_postgres",
-    #     python_callable=transfer_marts_to_postgres
-    # )
+    # ----------------------------
+    # 5. DBT TESTS
+    # ----------------------------
+    dbt_test = BashOperator(
+        task_id="dbt_test",
+        bash_command="""
+    set -euxo pipefail
+
+    echo "=== DBT TEST START ==="
+
+    dbt test \
+        --project-dir /opt/airflow/dbt \
+        --profiles-dir /opt/airflow/dbt \
+        --log-level debug
+    """
+    )
 
     # ----------------------------
     # TASK DEPENDENCIES
@@ -104,4 +113,5 @@ with DAG(
         >> postgres_schema_task
         >> load_postgres_task
         >> dbt_run_task
+        >> dbt_test
     )

@@ -1,0 +1,115 @@
+version: 2
+
+models:
+  - name: dim_airline
+    description: "Dimension table containing unique airlines with surrogate keys."
+    columns:
+      - name: airline_id
+        description: "Surrogate key for the airline."
+        tests:
+          - unique
+          - not_null
+
+      - name: airline
+        description: "Airline name extracted from staging data."
+        tests:
+          - not_null
+
+  - name: dim_route
+    description: "Dimension table representing travel routes between source and destination airports."
+    columns:
+      - name: route_id
+        description: "Surrogate key uniquely identifying the route."
+        tests:
+          - unique
+          - not_null
+
+      - name: source
+        description: "Source airport code."
+      - name: destination
+        description: "Destination airport code."
+
+  - name: dim_season
+    description: "Dimension table describing seasonality categories for pricing patterns."
+    columns:
+      - name: season_id
+        description: "Surrogate key for season category."
+        tests:
+          - unique
+          - not_null
+
+      - name: seasonality
+        description: "Season text (e.g. High, Low, Peak)."
+        tests:
+          - not_null
+
+  - name: dim_date
+    description: "Date dimension table generated using dbt date spine."
+    columns:
+      - name: date_id
+        description: "Date in YYYY-MM-DD format."
+        tests:
+          - unique
+          - not_null
+      - name: year
+      - name: month
+      - name: day
+      - name: quarter
+      - name: day_name
+      - name: is_weekend
+
+  - name: fact_flight_prices
+    description: "Fact table storing flight prices with foreign keys to airline, route, season and date dimensions."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - flight_id
+
+    columns:
+      - name: flight_id
+        description: "MD5 hash representing a unique flight record."
+        tests:
+          - not_null
+          - unique
+
+      - name: airline_id
+        description: "FK to dim_airline."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_airline')
+              field: airline_id
+
+      - name: route_id
+        description: "FK to dim_route."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_route')
+              field: route_id
+
+      - name: season_id
+        description: "FK to dim_season."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_season')
+              field: season_id
+
+      - name: departure_date_id
+        description: "FK to dim_date representing departure date."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_id
+
+      - name: total_fare
+        description: "Final fare including taxes and surcharges."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: fact_kpis
+    description: "Aggregated key performance indicators derived from flight pricing and routes."

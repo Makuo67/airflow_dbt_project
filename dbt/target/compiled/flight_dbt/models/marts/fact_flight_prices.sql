@@ -4,6 +4,7 @@ SELECT MD5(COALESCE(airline, '')) AS airline_id,
         COALESCE(source, '') || '|' || COALESCE(destination, '')
     ) AS route_id,
     MD5(COALESCE(seasonality, '')) AS season_id,
+    CAST(departure_time::date AS DATE) AS departure_date_id,
     flight_id,
     airline,
     source,
