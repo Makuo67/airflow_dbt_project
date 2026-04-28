@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
 [![Airflow](https://img.shields.io/badge/Apache%20Airflow-3.2.1-yellow.svg)](https://airflow.apache.org/)
-[![dbt](https://img.shields.io/badge/dbt-1.10+-orange.svg)](https://www.getdbt.com/)
+[![dbt](https://img.shields.io/badge/dbt-1.111.8-orange.svg)](https://www.getdbt.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://docs.docker.com/compose/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -103,12 +103,12 @@ All dimensional and fact tables use deterministic MD5 surrogate keys generated f
 
 ### Dimension Tables
 
-| Table         | Source                  | Grain                                | Key Logic                               |
-| ------------- | ----------------------- | ------------------------------------ | --------------------------------------- |
-| `dim_airline` | `flight_prices_staging` | One row per airline                  | `MD5(airline)`                          |
-| `dim_route`   | `flight_prices_staging` | One row per source-destination pair  | `MD5(source \|\| '-' \|\| destination)` |
-| `dim_season`  | `flight_prices_staging` | One row per seasonality value        | `MD5(seasonality)`                      |
-| `dim_date`    | Generated               | One row per calendar day (2010–2035) | `date_day` (native date)                |
+| Table         | Source                  | Grain                                | Key Logic                |
+| ------------- | ----------------------- | ------------------------------------ | ------------------------ | -------------------- |
+| `dim_airline` | `flight_prices_staging` | One row per airline                  | `MD5(airline)`           |
+| `dim_route`   | `flight_prices_staging` | One row per source-destination pair  | `MD5(source \|\| '       | ' \|\| destination)` |
+| `dim_season`  | `flight_prices_staging` | One row per seasonality value        | `MD5(seasonality)`       |
+| `dim_date`    | Generated               | One row per calendar day (2010–2035) | `date_day` (native date) |
 
 **`dim_date` Implementation**: Uses `dbt_utils.date_spine` to generate a 25-year date spine, then extracts `year`, `month`, `day`, `quarter`, `day_name`, and `is_weekend` flags. This eliminates external date-dimension dependencies.
 
@@ -200,13 +200,13 @@ dbt deps --project-dir /opt/airflow/dbt --profiles-dir /opt/airflow/dbt
 - **Modeling Patterns**: Star schema, deterministic surrogate keys, idempotent table materializations
 - **Infrastructure**: Docker Compose with healthchecks and service dependencies
 
-## Future Enhancements
+<!-- ## Future Enhancements
 
 - **Incremental Models**: Convert `fact_flight_prices` to an incremental model to support daily append-only loads without full table rebuilds.
 - **dbt Snapshots**: Track slowly changing dimensions (e.g., airline rebranding) using dbt snapshots on `dim_airline`.
 - **XCom Instrumentation**: Publish row counts and validation metrics from Python tasks into Airflow XCom for observability.
 - **S3 Source**: Replace local CSV with an S3 `S3KeySensor` trigger for cloud-native ingestion.
-- **dbt Docs**: Generate and serve dbt documentation via `dbt docs generate` and `dbt docs serve` inside the Docker network.
+- **dbt Docs**: Generate and serve dbt documentation via `dbt docs generate` and `dbt docs serve` inside the Docker network. -->
 
 ## Project Structure
 
