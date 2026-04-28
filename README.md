@@ -103,12 +103,12 @@ All dimensional and fact tables use deterministic MD5 surrogate keys generated f
 
 ### Dimension Tables
 
-| Table         | Source                  | Grain                                | Key Logic                |
-| ------------- | ----------------------- | ------------------------------------ | ------------------------ | -------------------- |
-| `dim_airline` | `flight_prices_staging` | One row per airline                  | `MD5(airline)`           |
-| `dim_route`   | `flight_prices_staging` | One row per source-destination pair  | `MD5(source \|\| '       | ' \|\| destination)` |
-| `dim_season`  | `flight_prices_staging` | One row per seasonality value        | `MD5(seasonality)`       |
-| `dim_date`    | Generated               | One row per calendar day (2010–2035) | `date_day` (native date) |
+| Table         | Source                  | Grain                                | Key Logic                                |
+| ------------- | ----------------------- | ------------------------------------ | ---------------------------------------- |
+| `dim_airline` | `flight_prices_staging` | One row per airline                  | `MD5(airline)`                           |
+| `dim_route`   | `flight_prices_staging` | One row per source-destination pair  | `MD5(source \|\| '\|' \|\| destination)` |
+| `dim_season`  | `flight_prices_staging` | One row per seasonality value        | `MD5(seasonality)`                       |
+| `dim_date`    | Generated               | One row per calendar day (2010–2035) | `date_day` (native date)                 |
 
 **`dim_date` Implementation**: Uses `dbt_utils.date_spine` to generate a 25-year date spine, then extracts `year`, `month`, `day`, `quarter`, `day_name`, and `is_weekend` flags. This eliminates external date-dimension dependencies.
 
@@ -189,7 +189,7 @@ dbt deps --project-dir /opt/airflow/dbt --profiles-dir /opt/airflow/dbt
 | **Two-Phase Compute Complexity**       | Computing KPIs directly in MySQL coupled transformation logic to the operational database.                         | Separated concerns: MySQL owns raw ingestion; Postgres owns staging; dbt owns all transformation and business logic. This follows the ELT pattern and allows analytics engineers to iterate on SQL without touching Python or operational databases.                            |
 | **Post-Transform Data Quality**        | dbt could materialize models with orphaned keys or negative fares silently.                                        | Added a dedicated `dbt_test` task in the Airflow DAG (`flight_price_pipelinev8`) that runs after `dbt_run`. Tests enforce uniqueness, not-null constraints, referential integrity across all dimension-FK relationships, and accepted-value ranges directly on the mart tables. |
 
-## Tech Stack and Best Practices
+## Tech Stack
 
 - **Orchestration**: Apache Airflow 3.2.1 (LocalExecutor, DAGs mounted via Docker volume)
 - **Operational Staging**: MySQL 8 (bulk `LOAD DATA LOCAL INFILE`)
@@ -213,40 +213,40 @@ dbt deps --project-dir /opt/airflow/dbt --profiles-dir /opt/airflow/dbt
 ```
 airflow_dbt_project/
 ├── dags/
-│   └── flight_price_pipeline.py      # Airflow DAG definition (v8)
+│   └── flight_price_pipeline.py      # Airflow DAG
 ├── dbt/
-│   ├── dbt_project.yml               # dbt project configuration
-│   ├── profiles.yml                  # Postgres connection profile
-│   ├── packages.yml                  # dbt package dependencies (dbt_utils)
+│   ├── dbt_project.yml               # dbt project
+│   ├── profiles.yml                  # Postgres connection
+│   ├── packages.yml                  # dbt package
 │   └── models/
 │       ├── staging/
-│       │   ├── sources.yml           # Staging source declarations
-│       │   └── staging_flights.sql   # Deduplicated staging with surrogate keys
+│       │   ├── sources.yml           # Staging source
+│       │   └── staging_flights.sql   # Deduplicated staging
 │       └── marts/
-│           ├── schema.yml            # dbt tests and model documentation
+│           ├── schema.yml            # dbt tests and model
 │           ├── dim_airline.sql       # Airline dimension
 │           ├── dim_route.sql         # Route dimension
 │           ├── dim_season.sql        # Season dimension
-│           ├── dim_date.sql          # Date dimension (dbt_utils spine)
+│           ├── dim_date.sql          # Date dimension
 │           ├── fact_flight_prices.sql # Atomic fact table
 │           └── fact_kpis.sql         # Aggregated KPIs
 ├── src/
 │   ├── ingestion/
-│   │   ├── mysql_dump.py             # CSV → MySQL bulk loader
-│   │   └── load_to_postgres_staging.py # MySQL → Postgres COPY loader
+│   │   ├── mysql_dump.py             # CSV → MySQL bulk
+│   │   └── load_to_postgres_staging.py # MySQL → Postgres
 │   ├── sql/
 │   │   ├── mysql_schema.py           # MySQL DDL
 │   │   └── postgres_staging_schema.py # Postgres staging DDL
 │   ├── validation/
 │   │   └── validation.py             # 5-layer DQ checks
 │   └── utils/
-│       ├── config.py                 # Environment configuration
-│       └── db.py                     # Connection context managers
+│       ├── config.py                 # Environment
+│       └── db.py                     # Connection context
 ├── data/
-│   └── Flight_Price_Dataset_of_Bangladesh.csv  # Source dataset
-├── docker-compose.yaml               # Multi-service Docker stack
-├── Dockerfile                        # Custom Airflow image with dbt
-└── requirements.txt                  # Python + dbt dependencies
+│   └── Flight_Price_Dataset_of_Bangladesh.csv  # Source
+├── docker-compose.yaml               # Multi-service Docker
+├── Dockerfile                        # Custom Airflow image
+└── requirements.txt                  # Python + dbt
 ```
 
 **Questions or Contributions?** Trigger the DAG and inspect the `analytics_db` marts directly.
