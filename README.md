@@ -1,6 +1,6 @@
 # Airflow Flight Price Analysis Pipeline
 
-[![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.13.13-blue.svg)](https://www.python.org/)
 [![Airflow](https://img.shields.io/badge/Apache%20Airflow-3.2.1-yellow.svg)](https://airflow.apache.org/)
 [![dbt](https://img.shields.io/badge/dbt-1.11.8-orange.svg)](https://www.getdbt.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
